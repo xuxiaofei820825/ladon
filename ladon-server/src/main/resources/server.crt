@@ -1,0 +1,66 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 2 (0x2)
+        Signature Algorithm: sha1WithRSAEncryption
+        Issuer: C=CN, ST=Shanghai, O=Suntec, OU=Navicloud, CN=suntec.net/emailAddress=xuxiaofei@pset.suntec.net
+        Validity
+            Not Before: Jun 30 15:27:30 2015 GMT
+            Not After : Jun 29 15:27:30 2016 GMT
+        Subject: C=CN, ST=Shanghai, O=Suntec, OU=Navicloud, CN=tcs.suntec.net/emailAddress=xuxiaofei@pset.suntec.net
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+            RSA Public Key: (512 bit)
+                Modulus (512 bit):
+                    00:ac:b6:1d:a8:eb:2e:dd:9c:63:24:cd:dc:d1:a2:
+                    a8:d9:0b:b2:43:ff:40:47:02:e7:6f:9b:6e:4b:d0:
+                    0e:c7:dd:da:b5:06:7f:2d:06:af:0b:34:bb:33:7e:
+                    18:73:e1:7b:87:0c:0c:52:36:a0:43:40:da:6f:d3:
+                    ed:fa:a0:f8:5b
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Basic Constraints: 
+                CA:FALSE
+            Netscape Comment: 
+                OpenSSL Generated Certificate
+            X509v3 Subject Key Identifier: 
+                DC:E7:6C:6D:2E:83:ED:AB:6E:9C:E2:6E:B8:7E:CA:DE:38:54:11:59
+            X509v3 Authority Key Identifier: 
+                keyid:31:83:33:64:FF:42:CB:CF:4C:C9:32:DD:F4:66:74:08:B2:E3:C9:CA
+
+    Signature Algorithm: sha1WithRSAEncryption
+        5c:c8:ea:3a:c8:12:53:14:fa:5a:18:e0:df:1f:4c:9d:68:1d:
+        67:fc:e2:f8:b2:bf:f5:79:23:8c:a1:15:17:bc:57:c4:d9:41:
+        b8:82:60:28:00:0d:9c:f1:07:63:16:25:18:08:c5:f7:2c:2d:
+        71:ac:18:83:6c:4c:f3:bd:e9:6b:d0:c9:5f:f7:66:bf:ec:a3:
+        e7:12:22:38:17:e5:f5:08:28:ee:f7:05:2d:e8:f9:cf:c7:35:
+        f3:6d:42:1b:d5:1b:fe:00:a2:64:c6:ee:57:ce:6e:c0:aa:4c:
+        56:3b:f1:18:46:1b:80:7b:d8:41:83:9e:7d:ea:02:74:4e:e9:
+        f3:8a:e3:d0:59:4c:22:31:11:22:80:6d:7c:df:8d:d4:96:fb:
+        06:ef:dd:ca:5f:b3:aa:b6:34:90:ef:6c:da:23:a4:d1:db:3b:
+        37:1b:63:18:b9:22:13:db:ef:0c:d4:02:98:6c:a5:96:0a:a2:
+        dc:c3:b6:77:75:df:8b:96:8f:56:62:d2:8c:0a:69:e0:0a:b6:
+        55:38:0e:2c:08:ba:6b:fd:94:7e:50:7f:23:e2:2b:a1:bf:f7:
+        18:59:16:7a:d5:38:05:ef:e6:0d:61:ad:7b:ef:51:e5:a6:96:
+        44:a6:85:c3:f7:15:b7:63:5a:76:43:7a:06:97:a1:63:68:09:
+        61:51:fd:bd
+-----BEGIN CERTIFICATE-----
+MIIDPDCCAiSgAwIBAgIBAjANBgkqhkiG9w0BAQUFADCBhDELMAkGA1UEBhMCQ04x
+ETAPBgNVBAgTCFNoYW5naGFpMQ8wDQYDVQQKEwZTdW50ZWMxEjAQBgNVBAsTCU5h
+dmljbG91ZDETMBEGA1UEAxMKc3VudGVjLm5ldDEoMCYGCSqGSIb3DQEJARYZeHV4
+aWFvZmVpQHBzZXQuc3VudGVjLm5ldDAeFw0xNTA2MzAxNTI3MzBaFw0xNjA2Mjkx
+NTI3MzBaMIGIMQswCQYDVQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxDzANBgNV
+BAoTBlN1bnRlYzESMBAGA1UECxMJTmF2aWNsb3VkMRcwFQYDVQQDEw50Y3Muc3Vu
+dGVjLm5ldDEoMCYGCSqGSIb3DQEJARYZeHV4aWFvZmVpQHBzZXQuc3VudGVjLm5l
+dDBcMA0GCSqGSIb3DQEBAQUAA0sAMEgCQQCsth2o6y7dnGMkzdzRoqjZC7JD/0BH
+Audvm25L0A7H3dq1Bn8tBq8LNLszfhhz4XuHDAxSNqBDQNpv0+36oPhbAgMBAAGj
+ezB5MAkGA1UdEwQCMAAwLAYJYIZIAYb4QgENBB8WHU9wZW5TU0wgR2VuZXJhdGVk
+IENlcnRpZmljYXRlMB0GA1UdDgQWBBTc52xtLoPtq26c4m64fsreOFQRWTAfBgNV
+HSMEGDAWgBQxgzNk/0LLz0zJMt30ZnQIsuPJyjANBgkqhkiG9w0BAQUFAAOCAQEA
+XMjqOsgSUxT6Whjg3x9MnWgdZ/zi+LK/9XkjjKEVF7xXxNlBuIJgKAANnPEHYxYl
+GAjF9ywtcawYg2xM873pa9DJX/dmv+yj5xIiOBfl9Qgo7vcFLej5z8c1821CG9Ub
+/gCiZMbuV85uwKpMVjvxGEYbgHvYQYOefeoCdE7p84rj0FlMIjERIoBtfN+N1Jb7
+Bu/dyl+zqrY0kO9s2iOk0ds7NxtjGLkiE9vvDNQCmGyllgqi3MO2d3Xfi5aPVmLS
+jApp4Aq2VTgOLAi6a/2UflB/I+Irob/3GFkWetU4Be/mDWGte+9R5aaWRKaFw/cV
+t2NadkN6BpehY2gJYVH9vQ==
+-----END CERTIFICATE-----
