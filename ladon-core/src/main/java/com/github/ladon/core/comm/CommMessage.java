@@ -1,4 +1,4 @@
-package com.github.ladon.server.comm;
+package com.github.ladon.core.comm;
 
 import lombok.Data;
 
@@ -9,7 +9,7 @@ import lombok.Data;
  *
  */
 @Data
-public class CommunicationMessage {
+public class CommMessage {
 
 	/** 消息类型 */
 	private String type;
@@ -17,10 +17,10 @@ public class CommunicationMessage {
 	/** 消息的有效荷载 */
 	private byte[] payload;
 
-	public CommunicationMessage() {
+	public CommMessage() {
 	}
 
-	public CommunicationMessage( final String type, final byte[] payload ) {
+	public CommMessage( final String type, final byte[] payload ) {
 		this.type = type;
 		this.payload = payload;
 	}

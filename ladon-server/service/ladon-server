@@ -1,0 +1,156 @@
+#!/bin/bash
+#
+# chkconfig: 345 88 90
+# description: 
+#
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+SERVICENAME="wlink-server"
+maxShutdownTime=15
+
+JAVA_EXE="{{{JAVA_HOME}}}/bin/java"
+JAR_HOME="{{{IPROAPP_HOME}}}/wlink-server"
+VERSION="0.0.1-SNAPSHOT"
+JAVA_CMD="java"
+JAR_FILE_NAME="wlink-server-${VERSION}.jar"
+SERVICE_CMD_LINE="${JAVA_EXE} -jar ${JAR_HOME}/${JAR_FILE_NAME}"
+
+javaCommandLineKeyword=${JAR_FILE_NAME}
+pidFile="/var/run/wlink-server.pid"
+servicePid=""
+RETVAL=0
+
+makeFileWritable() {
+  local filename="$1"
+  touch $filename || return 1
+  chmod g+w $filename || return 1
+  return 0;
+}
+
+# Returns 0 if the process with PID $1 is running.
+checkProcessIsRunning() {
+  local pid="$1"
+  if [ -z "$pid" -o "$pid" == " " ]; then return 1; fi
+  if [ ! -e /proc/$pid ]; then return 1; fi
+  return 0;
+}
+
+# Returns 0 if the process with PID $1 is our Java service process.
+checkProcessIsOurService() {
+  local pid="$1"
+  local cmd="$(ps -p $pid --no-headers -o comm)"
+  if [ "$cmd" != "$JAVA_CMD" ]; then return 1; fi
+  grep -q --binary -F "$javaCommandLineKeyword" /proc/$pid/cmdline
+  if [ $? -ne 0 ]; then return 1; fi
+  return 0;
+}
+
+# Returns 0 when the service is running and sets the variable $servicePid to the PID.
+getServicePid() {
+  if [ ! -f $pidFile ]; then return 1; fi
+  servicePid="$(<$pidFile)"
+  checkProcessIsRunning $servicePid || return 1
+  checkProcessIsOurService $servicePid || return 1
+  return 0;
+}
+
+checkServiceStatus() {
+   echo -n "Checking for $SERVICENAME:   "
+   if getServicePid; then
+    echo "running PID=$servicePid"
+    RETVAL=0
+   else
+    echo "stopped"
+    RETVAL=3
+   fi
+   return 0;
+}
+
+startServiceProcess() {
+  rm -f $pidFile
+  makeFileWritable $pidFile || return 1
+  nohup $SERVICE_CMD_LINE >> ${JAR_HOME}/log.txt 2>&1 & echo $! >$pidFile
+  sleep 2
+  servicePid="$(<$pidFile)"
+  if checkProcessIsRunning $servicePid; then :; else
+#    echo "  $SERVICENAME start failed, see logfile."
+    return 1
+  fi
+  return 0;
+}
+
+stopServiceProcess() {
+   kill $servicePid || return 1
+   for ((i=0; i<maxShutdownTime*10; i++)); do
+      checkProcessIsRunning $servicePid
+      if [ $? -ne 0 ]; then
+         rm -f $pidFile
+         return 0
+         fi
+      sleep 0.1
+      done
+   echo -e "\n$SERVICENAME did not terminate within $maxShutdownTime seconds, sending SIGKILL..."
+   kill -s KILL $servicePid || return 1
+   local killWaitTime=15
+   for ((i=0; i<killWaitTime*10; i++)); do
+      checkProcessIsRunning $servicePid
+      if [ $? -ne 0 ]; then
+         rm -f $pidFile
+         return 0
+         fi
+      sleep 0.1
+      done
+   echo "Error: $SERVICENAME could not be stopped within $maxShutdownTime+$killWaitTime seconds!"
+   return 1; 
+}
+
+startService() {
+  getServicePid
+  if [ $? -eq 0 ]; then echo "$SERVICENAME is already running"; RETVAL=0; return 0; fi
+  echo -n "Starting $SERVICENAME..."
+  startServiceProcess
+  if [ $? -ne 0 ]; then RETVAL=1; echo "   failed"; return 1; fi
+  echo "started PID=$servicePid"
+  RETVAL=0
+  return 0;
+}
+
+stopService() {
+  getServicePid
+  if [ $? -ne 0 ]; then echo "$SERVICENAME is not running."; RETVAL=0; return 0; fi
+  echo -n "Stopping $SERVICENAME..."
+  stopServiceProcess
+  if [ $? -ne 0 ]; then RETVAL=1; echo "   failed"; return 1; fi
+  echo "stopped PID=$servicePid"
+  RETVAL=0
+  return 0;
+}
+
+main() {
+  RETVAL=0
+  case "$1" in
+     start)
+       startService
+       ;;
+     stop)
+       stopService
+       ;;
+     restart)
+       stopService && startService
+       ;;
+     status)
+       checkServiceStatus
+       ;;
+     *)
+       echo "Usage: $0 {start|stop|restart|status}"
+       exit 1
+       ;;
+  esac
+  if [ $? -eq 0 ]; then echo [OK];else echo [ERROR]; fi
+
+  exit $RETVAL
+}
+
+main $1

@@ -1,4 +1,4 @@
-package com.github.ladon;
+package com.github.ladon.core;
 
 import junit.framework.Test;
 import junit.framework.TestCase;

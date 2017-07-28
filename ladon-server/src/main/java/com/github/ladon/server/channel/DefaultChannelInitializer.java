@@ -13,7 +13,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ResourceUtils;
 
 import com.github.ladon.server.ServerConfig;
-import com.github.ladon.server.comm.codec.CommunicationMessageCodec;
+import com.github.ladon.server.channel.codec.CommMessageCodec;
+import com.github.ladon.server.channel.handler.DefaultCommPayloadHandler;
+import com.github.ladon.server.channel.handler.HeartbeatHandler;
 import com.github.ladon.server.common.Utils;
 
 import io.netty.channel.ChannelInitializer;
@@ -33,13 +35,15 @@ public class DefaultChannelInitializer extends ChannelInitializer<SocketChannel>
 	private ServerConfig config;
 
 	/** SSL Context */
-	private SslContext sslCtx;
+	private SslContext sslContext;
 
-// @Autowired
-// private SimpleChannelInboundHandler<CommunicationMessage> commMessageHandler;
+	@Autowired
+	private HeartbeatHandler heartbeatHandler;
+
+	@Autowired
+	private DefaultCommPayloadHandler commPayloadHandler;
 
 	public void afterPropertiesSet() throws Exception {
-
 		// 设置SSLContext
 		setSSLContext();
 	}
@@ -55,37 +59,29 @@ public class DefaultChannelInitializer extends ChannelInitializer<SocketChannel>
 		// 是否使用SSL
 		final boolean isSSLEnabled = config.getSsl().isEnabled();
 		if ( isSSLEnabled )
-			pipeline.addLast( sslCtx.newHandler( channel.alloc() ) );
+			pipeline.addLast( sslContext.newHandler( channel.alloc() ) );
 
 		// #2.设置通讯包编/解码器(进、出)
-		pipeline.addLast( "comm_codec", new CommunicationMessageCodec() );
+		pipeline.addLast( "comm_codec", new CommMessageCodec() );
 
 		// #3.心跳检测处理器
 		IdleStateHandler idleStateHandler = new IdleStateHandler(
 				config.getHeartbeat(), 0, 0, TimeUnit.SECONDS );
 		pipeline.addLast( "idle", idleStateHandler );
+		pipeline.addLast( "heartbeat_handler", heartbeatHandler );
 
-// // 2.设置消息处理器
-// pipeline.addLast( "comm_message", commMessageHandler );
-//
-
+		// #4.设置消息处理器
+		pipeline.addLast( "comm_payload_handler", commPayloadHandler );
 	}
-
-	// ===========================================================================
-	// setter/getter
-
-// public void setCommMessageHandler( SimpleChannelInboundHandler<CommunicationMessage> commMessageHandler ) {
-// this.commMessageHandler = commMessageHandler;
-// }
 
 	// ===========================================================================
 	// private functions
 
 	private void setSSLContext() throws FileNotFoundException, SSLException {
 		// 是否使用SSL
-		final boolean isSSLEnabled = config.getSsl().isEnabled();
+		final boolean isSslEnabled = config.getSsl().isEnabled();
 
-		if ( isSSLEnabled ) {
+		if ( isSslEnabled ) {
 
 			// info log
 			logger.info( "Starting to set the SSL context......" );
@@ -94,12 +90,12 @@ public class DefaultChannelInitializer extends ChannelInitializer<SocketChannel>
 			File crtFile = ResourceUtils.getFile( config.getSsl().getCrtFile() );
 			File pkFile = ResourceUtils.getFile( config.getSsl().getPkFile() );
 
-			sslCtx = SslContextBuilder.forServer( crtFile, pkFile,
+			sslContext = SslContextBuilder.forServer( crtFile, pkFile,
 					config.getSsl().getKeyPassword() )
 					.build();
 
 			// info log
-			logger.info( "Succeed to set the SSL context......" );
+			logger.info( "Succeed to set the SSL context." );
 		}
 	}
 }

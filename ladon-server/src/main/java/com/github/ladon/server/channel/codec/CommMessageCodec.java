@@ -1,11 +1,11 @@
-package com.github.ladon.server.comm.codec;
+package com.github.ladon.server.channel.codec;
 
 import java.nio.charset.Charset;
 import java.util.List;
 
 import org.slf4j.Logger;
 
-import com.github.ladon.server.comm.CommunicationMessage;
+import com.github.ladon.core.comm.CommMessage;
 import com.github.ladon.server.common.Utils;
 
 import io.netty.buffer.ByteBuf;
@@ -22,7 +22,7 @@ import io.netty.handler.codec.ByteToMessageCodec;
  * @author xiaofei.xu
  * 
  */
-public class CommunicationMessageCodec extends ByteToMessageCodec<CommunicationMessage> {
+public class CommMessageCodec extends ByteToMessageCodec<CommMessage> {
 
 	/** logger */
 	private final Logger logger = Utils.getLogger();
@@ -37,7 +37,7 @@ public class CommunicationMessageCodec extends ByteToMessageCodec<CommunicationM
 	private int payloadLen = 0;
 
 	/** 通讯包有效荷载 */
-	private CommunicationMessage commPayload;
+	private CommMessage commPayload;
 
 	/**
 	 * 报文解析状态
@@ -47,7 +47,7 @@ public class CommunicationMessageCodec extends ByteToMessageCodec<CommunicationM
 	}
 
 	@Override
-	protected void encode( ChannelHandlerContext ctx, CommunicationMessage msg, ByteBuf out ) throws Exception {
+	protected void encode( ChannelHandlerContext ctx, CommMessage msg, ByteBuf out ) throws Exception {
 		byte[] bytesType = msg.getType()
 				.getBytes( Charset.forName( "UTF-8" ) );
 
@@ -100,7 +100,7 @@ public class CommunicationMessageCodec extends ByteToMessageCodec<CommunicationM
 			logger.debug( "Type of communication payload: {}", type );
 
 			// 创建对象
-			this.commPayload = new CommunicationMessage();
+			this.commPayload = new CommMessage();
 			this.commPayload.setType( type );
 
 			// 状态迁移到PAYLOAD_BODY
