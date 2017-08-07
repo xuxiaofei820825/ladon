@@ -13,14 +13,18 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ResourceUtils;
 
 import com.github.ladon.server.ServerConfig;
-import com.github.ladon.server.channel.codec.CommMessageCodec;
 import com.github.ladon.server.channel.handler.DefaultCommPayloadHandler;
-import com.github.ladon.server.channel.handler.HeartbeatHandler;
+import com.github.ladon.server.channel.handler.MqttConnectMessageHandler;
+import com.github.ladon.server.channel.handler.MqttPingMessageHandler;
+import com.github.ladon.server.channel.handler.MqttPublishMessageHandler;
+import com.github.ladon.server.channel.handler.MqttSubscribeMessageHandler;
 import com.github.ladon.server.common.Utils;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.codec.mqtt.MqttDecoder;
+import io.netty.handler.codec.mqtt.MqttEncoder;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.timeout.IdleStateHandler;
@@ -38,14 +42,20 @@ public class DefaultChannelInitializer extends ChannelInitializer<SocketChannel>
 	private SslContext sslContext;
 
 	@Autowired
-	private HeartbeatHandler heartbeatHandler;
+	private MqttPingMessageHandler heartbeatHandler;
 
 	@Autowired
 	private DefaultCommPayloadHandler commPayloadHandler;
 
+	@Autowired
+	private MqttPublishMessageHandler publishMsgHandler;
+
+	@Autowired
+	private MqttSubscribeMessageHandler subscribeMsgHandler;
+
 	public void afterPropertiesSet() throws Exception {
 		// 设置SSLContext
-		setSSLContext();
+		setSslContext();
 	}
 
 	@Override
@@ -61,30 +71,37 @@ public class DefaultChannelInitializer extends ChannelInitializer<SocketChannel>
 		if ( isSSLEnabled )
 			pipeline.addLast( sslContext.newHandler( channel.alloc() ) );
 
-		// #2.设置通讯包编/解码器(进、出)
-		pipeline.addLast( "comm_codec", new CommMessageCodec() );
+		// #2.MQTT协议编/解码器(进、出)
+		pipeline.addLast( "mqtt_decoder", new MqttDecoder() );
+		pipeline.addLast( "mqtt_encoder", MqttEncoder.INSTANCE );
 
 		// #3.心跳检测处理器
 		IdleStateHandler idleStateHandler = new IdleStateHandler(
 				config.getHeartbeat(), 0, 0, TimeUnit.SECONDS );
-		pipeline.addLast( "idle", idleStateHandler );
+		pipeline.addLast( "default_idle_handler", idleStateHandler );
 		pipeline.addLast( "heartbeat_handler", heartbeatHandler );
+
+		// 连接处理器
+		pipeline.addLast( "connect_handler", new MqttConnectMessageHandler() );
 
 		// #4.设置消息处理器
 		pipeline.addLast( "comm_payload_handler", commPayloadHandler );
+
+		pipeline.addLast( "mqtt_publish_handler", publishMsgHandler );
+		pipeline.addLast( "mqtt_subscribe_handler", subscribeMsgHandler );
 	}
 
 	// ===========================================================================
 	// private functions
 
-	private void setSSLContext() throws FileNotFoundException, SSLException {
+	private void setSslContext() throws FileNotFoundException, SSLException {
 		// 是否使用SSL
 		final boolean isSslEnabled = config.getSsl().isEnabled();
 
 		if ( isSslEnabled ) {
 
 			// info log
-			logger.info( "Starting to set the SSL context......" );
+			logger.info( "Starting to set the Ssl context......" );
 
 			// 加载证书和秘钥文件
 			File crtFile = ResourceUtils.getFile( config.getSsl().getCrtFile() );
@@ -95,7 +112,7 @@ public class DefaultChannelInitializer extends ChannelInitializer<SocketChannel>
 					.build();
 
 			// info log
-			logger.info( "Succeed to set the SSL context." );
+			logger.info( "Succeed to set the Ssl context." );
 		}
 	}
 }

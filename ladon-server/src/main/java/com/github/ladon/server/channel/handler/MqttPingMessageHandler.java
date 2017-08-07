@@ -9,13 +9,18 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.mqtt.MqttFixedHeader;
+import io.netty.handler.codec.mqtt.MqttMessage;
+import io.netty.handler.codec.mqtt.MqttMessageFactory;
+import io.netty.handler.codec.mqtt.MqttMessageType;
+import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 
 @Component
 @Sharable
-public class HeartbeatHandler extends ChannelInboundHandlerAdapter {
+public class MqttPingMessageHandler extends SimpleChannelInboundHandler<MqttMessage> {
 
 	/** logger */
 	private final Logger logger = Utils.getLogger();
@@ -44,7 +49,7 @@ public class HeartbeatHandler extends ChannelInboundHandlerAdapter {
 					@Override
 					public void operationComplete( ChannelFuture future ) throws Exception {
 						if ( future.isSuccess() ) {
-							logger.info( "Succeed to close channel of terminal." );
+							logger.info( "Succeed to close channel of terminal. channel:{}", future.channel() );
 						}
 					}
 				} );
@@ -56,6 +61,24 @@ public class HeartbeatHandler extends ChannelInboundHandlerAdapter {
 
 		// 转发事件
 		super.userEventTriggered( ctx, evt );
+	}
+
+	@Override
+	protected void channelRead0( ChannelHandlerContext ctx, MqttMessage msg ) throws Exception {
+
+		if ( msg.fixedHeader().messageType() != MqttMessageType.PINGREQ ) {
+			ctx.fireChannelRead( msg );
+			return;
+		}
+
+		// info log
+		logger.info( "Received a ping request message. channel:{}", ctx.channel() );
+
+		MqttFixedHeader mqttFixedHeader = new MqttFixedHeader( MqttMessageType.PINGRESP,
+				false, MqttQoS.AT_LEAST_ONCE, false, 0 );
+		MqttMessage pingMsg = MqttMessageFactory.newMessage( mqttFixedHeader, null, null );
+
+		ctx.writeAndFlush( pingMsg );
 	}
 
 }
