@@ -3,6 +3,7 @@ package com.github.ladon.client.channel;
 import java.util.concurrent.TimeUnit;
 
 import com.github.ladon.client.channel.handler.MqttPingMessageHandler;
+import com.github.ladon.client.channel.handler.MqttPublishMessageHandler;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -31,6 +32,7 @@ public class DefaultChannelInitializer extends ChannelInitializer<SocketChannel>
 		pipeline.addLast( new IdleStateHandler( 0, 60, 0, TimeUnit.SECONDS ) )
 				.addLast( "heartbeat", new MqttPingMessageHandler() );
 
+		pipeline.addLast( "mqtt_publish_message_handler", new MqttPublishMessageHandler() );
 	}
 
 }

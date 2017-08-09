@@ -179,7 +179,7 @@ public class DefaultLadonClient implements LadonClient {
 		ByteBuf payloadBuf = Unpooled.wrappedBuffer( payload );
 
 		MqttPublishMessage publishMsg = MqttMessageBuilders.publish()
-				.qos( MqttQoS.AT_MOST_ONCE )
+				.qos( MqttQoS.AT_LEAST_ONCE )
 				.topicName( topic )
 				.payload( payloadBuf )
 				.messageId( 1000 )

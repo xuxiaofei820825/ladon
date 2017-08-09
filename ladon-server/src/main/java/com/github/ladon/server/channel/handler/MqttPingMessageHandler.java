@@ -78,7 +78,8 @@ public class MqttPingMessageHandler extends SimpleChannelInboundHandler<MqttMess
 				false, MqttQoS.AT_LEAST_ONCE, false, 0 );
 		MqttMessage pingMsg = MqttMessageFactory.newMessage( mqttFixedHeader, null, null );
 
-		ctx.writeAndFlush( pingMsg );
+		if ( ctx.channel().isActive() )
+			ctx.writeAndFlush( pingMsg );
 	}
 
 }

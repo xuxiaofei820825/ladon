@@ -15,6 +15,7 @@ import org.springframework.util.ResourceUtils;
 import com.github.ladon.server.ServerConfig;
 import com.github.ladon.server.channel.handler.DefaultCommPayloadHandler;
 import com.github.ladon.server.channel.handler.MqttConnectMessageHandler;
+import com.github.ladon.server.channel.handler.MqttDisconnectMessageHandler;
 import com.github.ladon.server.channel.handler.MqttPingMessageHandler;
 import com.github.ladon.server.channel.handler.MqttPublishMessageHandler;
 import com.github.ladon.server.channel.handler.MqttSubscribeMessageHandler;
@@ -53,6 +54,9 @@ public class DefaultChannelInitializer extends ChannelInitializer<SocketChannel>
 	@Autowired
 	private MqttSubscribeMessageHandler subscribeMsgHandler;
 
+	@Autowired
+	private MqttDisconnectMessageHandler disconnectMsgHandler;
+
 	public void afterPropertiesSet() throws Exception {
 		// 设置SSLContext
 		setSslContext();
@@ -82,13 +86,14 @@ public class DefaultChannelInitializer extends ChannelInitializer<SocketChannel>
 		pipeline.addLast( "heartbeat_handler", heartbeatHandler );
 
 		// 连接处理器
-		pipeline.addLast( "connect_handler", new MqttConnectMessageHandler() );
+		pipeline.addLast( "mqtt_connect_handler", new MqttConnectMessageHandler() );
 
 		// #4.设置消息处理器
 		pipeline.addLast( "comm_payload_handler", commPayloadHandler );
 
 		pipeline.addLast( "mqtt_publish_handler", publishMsgHandler );
 		pipeline.addLast( "mqtt_subscribe_handler", subscribeMsgHandler );
+		pipeline.addLast( "mqtt_disconnect_handler", disconnectMsgHandler );
 	}
 
 	// ===========================================================================

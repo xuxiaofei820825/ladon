@@ -2,8 +2,10 @@ package com.github.ladon.server.channel.handler;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -16,24 +18,32 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.github.ladon.core.comm.TopicFilter;
+import com.github.ladon.server.TopicSubscriptionTable;
 import com.github.ladon.server.common.Utils;
+import com.github.ladon.server.session.Session;
 
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.mqtt.MqttFixedHeader;
+import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
+import io.netty.handler.codec.mqtt.MqttMessageType;
+import io.netty.handler.codec.mqtt.MqttQoS;
+import io.netty.handler.codec.mqtt.MqttSubAckMessage;
+import io.netty.handler.codec.mqtt.MqttSubAckPayload;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 
 @Component
 @Sharable
 public class MqttSubscribeMessageHandler extends SimpleChannelInboundHandler<MqttSubscribeMessage> {
-	
+
 	/** KAFKA服务器集群 */
 	@Value("${spring.kafka.bootstrapServers}")
 	private String bootstrapServers;
 
 	/** logger */
 	private final Logger logger = Utils.getLogger();
-	
+
 	@Override
 	protected void channelRead0( ChannelHandlerContext ctx, MqttSubscribeMessage msg ) throws Exception {
 
@@ -45,18 +55,40 @@ public class MqttSubscribeMessageHandler extends SimpleChannelInboundHandler<Mqt
 		msg.payload().topicSubscriptions().stream().forEach( sub -> {
 			final String name = sub.topicName();
 			try {
-				filters.add( TopicFilter.valueOf( name ) );
+
+				TopicFilter filter = TopicFilter.valueOf( name );
+				filters.add( filter );
+
+				// 在Topic订阅表中添加记录
+				TopicSubscriptionTable.add( filter.getTopicName(), ctx.channel() );
+
+				Set<String> topics = ctx.channel().attr( Session.TopicsKey ).get();
+				if ( topics == null ) {
+					topics = new HashSet<String>();
+					ctx.channel().attr( Session.TopicsKey ).set( topics );
+				}
+
+				topics.add( filter.getTopicName() );
 			}
 			catch ( Exception ex ) {
 				logger.warn( "Failed to convert filter string:{}", name );
 			}
 		} );
 
+		MqttFixedHeader mqttFixedHeader = new MqttFixedHeader( MqttMessageType.SUBACK,
+				false, MqttQoS.AT_LEAST_ONCE, false, 0 );
+		MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from( 100 );
+		MqttSubAckPayload payload = new MqttSubAckPayload( 0 );
+		MqttSubAckMessage subAckMsg = new MqttSubAckMessage( mqttFixedHeader, variableHeader, payload );
+
+		if ( ctx.channel().isActive() )
+			ctx.channel().writeAndFlush( subAckMsg );
+
 		ExecutorService executors = Executors.newFixedThreadPool( 1 );
 		executors.execute( new Runnable() {
 			@Override
 			public void run() {
-				
+
 				Properties props = new Properties();
 				props.put( "bootstrap.servers", bootstrapServers );
 				props.put( "group.id", "test" );

@@ -1,16 +1,13 @@
 package com.github.ladon.client;
 
+import java.util.UUID;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import com.github.ladon.core.comm.TopicFilter;
-
-/**
- * Application Launcher
- */
 @SpringBootApplication
-public class AppLauncher implements CommandLineRunner {
+public class DemoClientPublisher implements CommandLineRunner {
 
 	private static final String TOPIC = "AppA";
 
@@ -22,28 +19,21 @@ public class AppLauncher implements CommandLineRunner {
 	 * @throws Exception
 	 */
 	public static void main( String[] args ) throws Exception {
-		SpringApplication.run( AppLauncher.class, args );
+		SpringApplication.run( DemoClientPublisher.class, args );
 	}
 
 	@Override
 	public void run( String... args ) throws Exception {
 
-		//DefaultClientBootstrap bootstrap = new DefaultClientBootstrap( "localhost", 2392 );
-		//bootstrap.connect();
-
 		LadonClient client = DefaultLadonClient.builder()
 				.host( "localhost" )
 				.port( 2392 )
 				.keepAlive( 60 )
-				.clientId( "D00001" )
+				.clientId( UUID.randomUUID().toString().replaceAll( "-", "" ) )
 				.build();
+
+		// connect to server
 		client.connect();
-		
-		// subscribe
-		TopicFilter topicFilter = new TopicFilter();
-		topicFilter.setOffset( 0 );
-		topicFilter.setTopicName( TOPIC );
-		client.subscribe( topicFilter );
 
 		// publish message
 		client.publish( TOPIC, new String( "Hello world" ).getBytes() );
